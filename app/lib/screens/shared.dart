@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../api/images.dart';
 import '../api/models.dart';
-import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
@@ -259,9 +258,8 @@ String? pkPackLabel(Product p) {
 
 String _trim(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toString();
 
-/// Builds a fully-wired [ProductCard] (favorite + tap → product detail).
+/// Builds a fully-wired [ProductCard] (tap → product detail).
 Widget pkProductCard(BuildContext context, Product p, {String heroPrefix = 'grid'}) {
-  final app = AppScope.of(context);
   final tag = 'product-$heroPrefix-${p.id}';
   return ProductCard(
     name: p.name,
@@ -273,8 +271,6 @@ Widget pkProductCard(BuildContext context, Product p, {String heroPrefix = 'grid
     unit: p.unit ?? 'kg',
     storeCount: p.storeCount,
     discountPct: p.bestDiscount,
-    favorite: app.isFav(p.id),
-    onToggleFavorite: () => app.toggleFav(p.id),
     onTap: () => PkNavScope.of(context).openProduct(p, heroTag: tag),
     heroTag: tag,
   );

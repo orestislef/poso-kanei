@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../api/images.dart';
 import '../api/models.dart';
+import '../i18n/strings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
@@ -112,7 +113,7 @@ class _ProductScreenState extends State<ProductScreen> {
           children: [
             _BackButton(),
             PkErrorView(
-              message: 'Δεν βρέθηκε το προϊόν.',
+              message: context.t.productNotFound,
               onRetry: widget.productId != null ? _retry : null,
             ),
           ],
@@ -161,7 +162,7 @@ class _BackButton extends StatelessWidget {
             children: [
               Icon(Icons.chevron_left, size: 16, color: pk.textSecondary),
               const SizedBox(width: 2),
-              Text('Πίσω',
+              Text(context.t.back,
                   style: PkText.label(
                       size: PkFont.sm, weight: FontWeight.w600, color: pk.textSecondary)),
             ],
@@ -181,7 +182,7 @@ class _DetailTop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = _Media(product: product, heroTag: heroTag, onToggleFav: onMutated);
+    final media = _Media(product: product, heroTag: heroTag);
     final info = _Info(product: product, onAction: onMutated);
 
     if (pkIsDesktop(context)) {
@@ -208,13 +209,11 @@ class _DetailTop extends StatelessWidget {
 class _Media extends StatelessWidget {
   final Product product;
   final String? heroTag;
-  final VoidCallback onToggleFav;
-  const _Media({required this.product, required this.heroTag, required this.onToggleFav});
+  const _Media({required this.product, required this.heroTag});
 
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
-    final app = AppScope.of(context);
     final tag = heroTag ?? 'product-${product.id}';
     final url = PkImages.display(product.imageUrl);
 
@@ -228,7 +227,6 @@ class _Media extends StatelessWidget {
           )
         : Icon(Icons.shopping_basket_outlined, size: 110, color: pk.borderStrong);
 
-    final fav = app.isFav(product.id);
     final discount = product.bestDiscount;
 
     return AspectRatio(
@@ -258,46 +256,7 @@ class _Media extends StatelessWidget {
                 top: 16,
                 child: DealBadge(percentage: discount, pulse: true),
               ),
-            Positioned(
-              right: 16,
-              top: 16,
-              child: _FrostedHeart(
-                active: fav,
-                onTap: () {
-                  app.toggleFav(product.id);
-                  onToggleFav();
-                },
-              ),
-            ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FrostedHeart extends StatelessWidget {
-  final bool active;
-  final VoidCallback onTap;
-  const _FrostedHeart({required this.active, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final pk = context.pk;
-    return Material(
-      color: pk.surface.withValues(alpha: 0.78),
-      shape: const CircleBorder(),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 36,
-          height: 36,
-          child: Icon(
-            active ? Icons.favorite : Icons.favorite_border,
-            size: 18,
-            color: active ? pk.deal : pk.textMuted,
-          ),
         ),
       ),
     );
@@ -312,6 +271,7 @@ class _Info extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final app = AppScope.of(context);
     final pack = pkPackLabel(product);
     final brand = product.brand;
@@ -344,7 +304,7 @@ class _Info extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: PkButton(
             size: PkButtonSize.lg,
-            label: inBasket ? 'Στο καλάθι σου' : 'Προσθήκη στο καλάθι',
+            label: inBasket ? t.inBasket : t.addToBasket,
             iconLeft: Icon(inBasket ? Icons.check : Icons.add, size: 18, color: Colors.white),
             onPressed: () {
               app.toggleBasket(product);
@@ -408,7 +368,7 @@ class _HeadCards extends StatelessWidget {
     final sorted = product.sortedByPrice;
     final cheapest = sorted.isNotEmpty ? sorted.first : null;
     return _shell(context, [
-      _label(context, 'Φθηνότερη τιμή'),
+      _label(context, context.t.cheapestPrice),
       const SizedBox(height: 8),
       PriceDisplay(
         amount: product.minPrice ?? 0,
@@ -432,7 +392,7 @@ class _HeadCards extends StatelessWidget {
     final unit = product.unit ?? 'kg';
     final mup = product.minUnitPrice;
     return _shell(context, [
-      _label(context, 'Καλύτερο €/$unit'),
+      _label(context, context.t.bestPerUnit(unit)),
       const SizedBox(height: 8),
       Row(
         crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -453,7 +413,7 @@ class _HeadCards extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 8),
-      const PkBadge(tone: PkBadgeTone.save, label: 'πραγματική σύγκριση'),
+      PkBadge(tone: PkBadgeTone.save, label: context.t.realComparison),
     ]);
   }
 }
@@ -474,7 +434,7 @@ class _SpreadCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Διασπορά τιμής σε ${product.storeCount} μαγαζιά',
+            context.t.spreadIn(product.storeCount),
             style: PkText.display(size: 16, weight: FontWeight.w700, color: pk.textPrimary),
           ),
           const SizedBox(height: 18),
@@ -524,25 +484,42 @@ class _WhereToBuy extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
+    final app = AppScope.of(context);
     final rows = product.sortedByPrice;
     final unit = product.unit ?? 'kg';
+    final item = app.itemFor(product.id);
+    final selectedSlug = item?.effectiveStore; // null when not yet in basket
     return PkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Πού να αγοράσεις',
-              style: PkText.display(size: 16, weight: FontWeight.w700, color: pk.textPrimary)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(t.whereToBuy,
+                    style: PkText.display(size: 16, weight: FontWeight.w700, color: pk.textPrimary)),
+              ),
+              if (rows.length > 1)
+                Text(t.tapToChoose, style: PkText.mono(size: 11, color: pk.textMuted)),
+            ],
+          ),
           const SizedBox(height: 14),
           if (rows.isEmpty)
-            Text('Δεν υπάρχουν διαθέσιμες τιμές.',
-                style: PkText.body(size: PkFont.sm, color: pk.textMuted))
+            Text(t.noPrices, style: PkText.body(size: PkFont.sm, color: pk.textMuted))
           else
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var i = 0; i < rows.length; i++) ...[
                   if (i > 0) const SizedBox(height: 8),
-                  _RetailerRow(rp: rows[i], cheapest: i == 0, unit: unit),
+                  _RetailerRow(
+                    rp: rows[i],
+                    cheapest: i == 0,
+                    selected: rows[i].retailer == selectedSlug,
+                    unit: unit,
+                    onTap: () => app.setStore(product, rows[i].retailer),
+                  ),
                 ],
               ],
             ),
@@ -555,54 +532,86 @@ class _WhereToBuy extends StatelessWidget {
 class _RetailerRow extends StatelessWidget {
   final RetailerPrice rp;
   final bool cheapest;
+  final bool selected;
   final String unit;
-  const _RetailerRow({required this.rp, required this.cheapest, required this.unit});
+  final VoidCallback onTap;
+  const _RetailerRow({
+    required this.rp,
+    required this.cheapest,
+    required this.selected,
+    required this.unit,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final badges = <Widget>[
-      if (cheapest) const PkBadge(tone: PkBadgeTone.save, label: 'φθηνότερο'),
+      if (selected) PkBadge(tone: PkBadgeTone.neutral, label: t.selected),
+      if (cheapest) PkBadge(tone: PkBadgeTone.save, label: t.cheapestBadge),
       if (rp.isDiscount) DealBadge(percentage: rp.discountPercentage, soft: true),
       FreshnessBadge(date: rp.lastUpdated),
     ];
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      decoration: BoxDecoration(
-        color: cheapest ? pk.saveSoft : pk.surface,
-        borderRadius: BorderRadius.circular(PkRadius.md),
-        border: Border.all(
-          color: cheapest ? pk.save : pk.borderSubtle,
-          width: cheapest ? 1.5 : 1,
+    final Color borderColor = selected
+        ? pk.primary
+        : cheapest
+            ? pk.save
+            : pk.borderSubtle;
+    final Color bg = selected
+        ? pk.primarySoft
+        : cheapest
+            ? pk.saveSoft
+            : pk.surface;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: PkDur.fast,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(PkRadius.md),
+            border: Border.all(color: borderColor, width: (selected || cheapest) ? 1.5 : 1),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                size: 18,
+                color: selected ? pk.primary : pk.borderStrong,
+              ),
+              const SizedBox(width: 10),
+              StoreChip(
+                slug: rp.retailer,
+                name: rp.retailerDisplayName,
+                size: PkStoreChipSize.md,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: badges,
+                ),
+              ),
+              const SizedBox(width: 12),
+              PriceDisplay(
+                amount: rp.price,
+                unitPrice: rp.priceNormalized,
+                unit: unit,
+                size: PkPriceSize.sm,
+                tone: cheapest ? PkPriceTone.save : PkPriceTone.normal,
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          StoreChip(
-            slug: rp.retailer,
-            name: rp.retailerDisplayName,
-            size: PkStoreChipSize.md,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: badges,
-            ),
-          ),
-          const SizedBox(width: 12),
-          PriceDisplay(
-            amount: rp.price,
-            unitPrice: rp.priceNormalized,
-            unit: unit,
-            size: PkPriceSize.sm,
-            tone: cheapest ? PkPriceTone.save : PkPriceTone.normal,
-          ),
-        ],
       ),
     );
   }
@@ -648,13 +657,13 @@ class _HistoryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Text('Ιστορικό τιμών',
+                child: Text(context.t.priceHistory,
                     style: PkText.display(size: 16, weight: FontWeight.w700, color: pk.textPrimary)),
               ),
               if (hasChart && low != null)
                 PkBadge(
                   tone: PkBadgeTone.save,
-                  label: 'χαμηλότερο 30ημ. · €${low.toStringAsFixed(2)}',
+                  label: context.t.low30('€${low.toStringAsFixed(2)}'),
                 ),
             ],
           ),
@@ -669,7 +678,7 @@ class _HistoryCard extends StatelessWidget {
               ),
             )
           else
-            Text('Δεν υπάρχει ακόμη ιστορικό τιμών.',
+            Text(context.t.noHistory,
                 style: PkText.body(size: PkFont.sm, color: pk.textMuted)),
           if (atLow) ...[
             const SizedBox(height: 14),
@@ -680,7 +689,7 @@ class _HistoryCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    'Η σημερινή τιμή πιάνει το χαμηλότερο 30 ημερών — γνήσια προσφορά.',
+                    context.t.atLowNote,
                     style: PkText.mono(size: 12, color: pk.saveText, height: 1.4),
                   ),
                 ),
@@ -711,7 +720,7 @@ class _Alternatives extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 44),
-        const PkSectionHeader(title: 'Φθηνότερες εναλλακτικές'),
+        PkSectionHeader(title: context.t.alternatives),
         PkResponsiveGrid(
           columnsFor: PkResponsiveGrid.products,
           children: [

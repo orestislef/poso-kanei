@@ -1,14 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
 import 'deal_badge.dart';
 import 'price_display.dart';
 import 'unit_price_tag.dart';
 
-/// The primary product tile: square media with deal + favourite overlays, then
-/// brand / name / price / unit-price + store-count footer. Lifts on hover.
+/// The primary product tile: square media with a deal overlay, then brand /
+/// name / price / unit-price + store-count footer. Lifts on hover.
 class ProductCard extends StatefulWidget {
   final String name;
   final String? brand;
@@ -20,8 +21,6 @@ class ProductCard extends StatefulWidget {
   final String unit;
   final int? storeCount;
   final num? discountPct;
-  final bool favorite;
-  final VoidCallback? onToggleFavorite;
   final VoidCallback? onTap;
   final String? heroTag;
 
@@ -37,8 +36,6 @@ class ProductCard extends StatefulWidget {
     this.unit = 'kg',
     this.storeCount,
     this.discountPct,
-    this.favorite = false,
-    this.onToggleFavorite,
     this.onTap,
     this.heroTag,
   });
@@ -53,6 +50,7 @@ class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final reduceMotion = MediaQuery.of(context).disableAnimations;
 
     Widget media;
@@ -88,14 +86,6 @@ class _ProductCardState extends State<ProductCard> {
               left: PkSpace.x2,
               child: DealBadge(percentage: widget.discountPct),
             ),
-          Positioned(
-            top: PkSpace.x2,
-            right: PkSpace.x2,
-            child: _FavoriteButton(
-              favorite: widget.favorite,
-              onTap: widget.onToggleFavorite,
-            ),
-          ),
         ],
       ),
     );
@@ -149,7 +139,7 @@ class _ProductCardState extends State<ProductCard> {
                 const SizedBox(width: PkSpace.x2),
                 Flexible(
                   child: Text(
-                    '· ${widget.storeCount} ${widget.storeCount == 1 ? 'μαγαζί' : 'μαγαζιά'}',
+                    '· ${t.storeCountLabel(widget.storeCount!)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: PkText.mono(size: 11, color: pk.textSecondary),
@@ -190,38 +180,6 @@ class _ProductCardState extends State<ProductCard> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: card,
-      ),
-    );
-  }
-}
-
-/// 32×32 frosted circular heart toggle. Swallows the tap so the card's [onTap]
-/// does not also fire.
-class _FavoriteButton extends StatelessWidget {
-  final bool favorite;
-  final VoidCallback? onTap;
-
-  const _FavoriteButton({required this.favorite, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final pk = context.pk;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: pk.surfaceRaised.withValues(alpha: 0.86),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          favorite ? Icons.favorite : Icons.favorite_border,
-          size: 18,
-          color: favorite ? pk.deal : pk.textMuted,
-        ),
       ),
     );
   }
