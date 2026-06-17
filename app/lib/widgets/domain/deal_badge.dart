@@ -67,6 +67,12 @@ class _DealBadgeState extends State<DealBadge> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+
+    // Hide a meaningless "−0%": a rounded-to-zero discount is not a deal.
+    if (widget.label == null &&
+        (widget.percentage == null || widget.percentage!.round().abs() == 0)) {
+      return const SizedBox.shrink();
+    }
     _syncPulse();
 
     final ({Color bg, Color fg, Color? border}) c;

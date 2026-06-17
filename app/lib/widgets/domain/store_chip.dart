@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../api/images.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
 
@@ -37,12 +39,18 @@ class StoreChip extends StatelessWidget {
   final PkStoreChipSize size;
   final bool showName;
 
+  /// Render the real retailer logo (`/images/retailer/<slug>`) on a light tile,
+  /// falling back to the colored monogram while loading or on error.
+  /// Defaults to true so every market shows its real logo.
+  final bool logo;
+
   const StoreChip({
     super.key,
     required this.slug,
     this.name,
     this.size = PkStoreChipSize.md,
     this.showName = true,
+    this.logo = true,
   });
 
   double get _logoSize => switch (size) {
@@ -81,33 +89,51 @@ class StoreChip extends StatelessWidget {
       displayName = name ?? slug;
     }
 
-    final logo = Container(
-      width: _logoSize,
-      height: _logoSize,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(
-          size == PkStoreChipSize.lg ? PkRadius.md : PkRadius.sm,
-        ),
-      ),
-      child: Text(
-        short,
-        textAlign: TextAlign.center,
-        style: PkText.display(
-          size: _logoFont,
-          weight: FontWeight.w800,
-          color: fg,
-        ),
-      ),
+    final radius = BorderRadius.circular(
+      size == PkStoreChipSize.lg ? PkRadius.md : PkRadius.sm,
     );
 
-    if (!showName) return logo;
+    Widget monogram() => Container(
+          width: _logoSize,
+          height: _logoSize,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: bg, borderRadius: radius),
+          child: Text(
+            short,
+            textAlign: TextAlign.center,
+            style: PkText.display(size: _logoFont, weight: FontWeight.w800, color: fg),
+          ),
+        );
+
+    final Widget logoWidget = logo
+        ? Container(
+            width: _logoSize,
+            height: _logoSize,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: radius,
+              border: Border.all(color: pk.borderSubtle),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: EdgeInsets.all(_logoSize * 0.16),
+              child: CachedNetworkImage(
+                imageUrl: PkImages.retailer(slug),
+                fit: BoxFit.contain,
+                fadeInDuration: const Duration(milliseconds: 200),
+                placeholder: (_, _) => monogram(),
+                errorWidget: (_, _, _) => monogram(),
+              ),
+            ),
+          )
+        : monogram();
+
+    if (!showName) return logoWidget;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        logo,
+        logoWidget,
         const SizedBox(width: PkSpace.x2),
         Flexible(
           child: Text(

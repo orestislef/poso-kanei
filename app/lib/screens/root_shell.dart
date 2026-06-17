@@ -101,7 +101,16 @@ class _RootShellState extends State<RootShell> implements PkNav {
     final width = MediaQuery.of(context).size.width;
     final showBottomNav = width < 768;
 
-    return PkNavScope(
+    final overlay = (app.dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+        .copyWith(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: overlay,
+      child: PkNavScope(
       nav: this,
       child: PopScope(
         canPop: false,
@@ -144,6 +153,7 @@ class _RootShellState extends State<RootShell> implements PkNav {
               ? _BottomNav(active: _tab, basketCount: app.basketCount, onTab: goTab)
               : null,
         ),
+      ),
       ),
     );
   }
@@ -232,12 +242,6 @@ class _GlassHeader extends StatelessWidget {
                         onPressed: onToggleTheme,
                         child: Icon(dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined, size: 18, color: pk.textSecondary),
                       ),
-                      if (showNavLinks)
-                        PkIconButton(
-                          semanticLabel: 'Ειδοποιήσεις',
-                          onPressed: () {},
-                          child: Icon(Icons.notifications_none, size: 18, color: pk.textSecondary),
-                        ),
                       const SizedBox(width: 4),
                       _BasketButton(count: basketCount, onTap: () => onTab(PkTab.basket)),
                     ],

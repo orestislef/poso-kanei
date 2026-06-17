@@ -340,27 +340,17 @@ class _Info extends StatelessWidget {
         const SizedBox(height: 22),
         _HeadCards(product: product),
         const SizedBox(height: 22),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            PkButton(
-              size: PkButtonSize.lg,
-              label: inBasket ? 'Στο καλάθι σου' : 'Προσθήκη στο καλάθι',
-              iconLeft: Icon(inBasket ? Icons.check : Icons.add, size: 18, color: Colors.white),
-              onPressed: () {
-                app.toggleBasket(product);
-                onAction();
-              },
-            ),
-            PkButton(
-              size: PkButtonSize.lg,
-              variant: PkButtonVariant.secondary,
-              label: 'Ειδοποίηση τιμής',
-              iconLeft: const Icon(Icons.notifications_none, size: 18),
-              onPressed: () {},
-            ),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: PkButton(
+            size: PkButtonSize.lg,
+            label: inBasket ? 'Στο καλάθι σου' : 'Προσθήκη στο καλάθι',
+            iconLeft: Icon(inBasket ? Icons.check : Icons.add, size: 18, color: Colors.white),
+            onPressed: () {
+              app.toggleBasket(product);
+              onAction();
+            },
+          ),
         ),
         if (product.priceStats != null && product.storeCount > 1) ...[
           const SizedBox(height: 22),
@@ -377,13 +367,15 @@ class _HeadCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: _head1(context)),
-        const SizedBox(width: 16),
-        Expanded(child: _head2(context)),
-      ],
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: _head1(context)),
+          const SizedBox(width: 16),
+          Expanded(child: _head2(context)),
+        ],
+      ),
     );
   }
 

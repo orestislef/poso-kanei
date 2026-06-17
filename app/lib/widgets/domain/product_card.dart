@@ -149,7 +149,7 @@ class _ProductCardState extends State<ProductCard> {
                 const SizedBox(width: PkSpace.x2),
                 Flexible(
                   child: Text(
-                    '· ${widget.storeCount} ${widget.storeCount == 1 ? 'store' : 'stores'}',
+                    '· ${widget.storeCount} ${widget.storeCount == 1 ? 'μαγαζί' : 'μαγαζιά'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: PkText.mono(size: 11, color: pk.textSecondary),

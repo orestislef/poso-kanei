@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
@@ -48,9 +49,15 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+      child: Scaffold(
       backgroundColor: _bg,
       body: Stack(
+        fit: StackFit.expand,
         alignment: Alignment.center,
         children: [
           // warm green glow
@@ -68,7 +75,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               ),
             ),
           ),
-          Column(
+          Center(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ScaleTransition(
@@ -79,7 +87,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               Text('πόσο κάνει', style: PkText.display(size: 46, weight: FontWeight.w800, color: _ink, tracking: -0.03)),
               const SizedBox(height: 8),
               Text(
-                "Don't ask what it costs. Ask where it's cheapest.",
+                'Μην ρωτάς πόσο κάνει. Ρώτα πού είναι φθηνότερο.',
+                textAlign: TextAlign.center,
                 style: PkText.body(size: 16, color: _ink.withValues(alpha: 0.7)),
               ),
               const SizedBox(height: 30),
@@ -113,15 +122,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('checking '),
+                    const Text('έλεγχος '),
                     Text('$_n', style: PkText.mono(size: 12, weight: FontWeight.w600, color: _accent)),
-                    const Text(' stores…'),
+                    const Text(' καταστημάτων…'),
                   ],
                 ),
               ),
             ],
           ),
+          ),
         ],
+      ),
       ),
     );
   }

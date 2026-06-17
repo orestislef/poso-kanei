@@ -150,9 +150,9 @@ class _PriceSpreadBarState extends State<PriceSpreadBar> with SingleTickerProvid
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            label(_fmt(widget.min), 'cheapest', pk.saveText, CrossAxisAlignment.start),
-            label(_fmt(widget.avg), 'average', pk.textPrimary, CrossAxisAlignment.center),
-            label(_fmt(widget.max), 'highest', pk.textPrimary, CrossAxisAlignment.end),
+            label(_fmt(widget.min), 'φθηνότερη', pk.saveText, CrossAxisAlignment.start),
+            label(_fmt(widget.avg), 'μέση', pk.textPrimary, CrossAxisAlignment.center),
+            label(_fmt(widget.max), 'υψηλότερη', pk.textPrimary, CrossAxisAlignment.end),
           ],
         ),
       ],

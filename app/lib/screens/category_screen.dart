@@ -154,17 +154,50 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final desktop = pkIsDesktop(context);
-    return PageScaffold(
-      child: desktop
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: PkLayout.railCategory, child: _rail(context)),
-                const SizedBox(width: PkSpace.x8),
-                Expanded(child: _content(context)),
-              ],
-            )
-          : _content(context),
+    if (!desktop) return PageScaffold(child: _content(context));
+
+    // Desktop: the rail and filter bar stay put; only the product grid scrolls.
+    final hpad = pkPageHPad(context);
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: PkLayout.container2xl),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(hpad, PkSpace.x7, hpad, 0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: PkLayout.railCategory,
+                child: SingleChildScrollView(child: _rail(context)),
+              ),
+              const SizedBox(width: PkSpace.x8),
+              Expanded(child: _desktopContent(context)),
+            ],
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+
+  /// Desktop content: breadcrumb + sort/filter bar pinned, grid scrolls below.
+  Widget _desktopContent(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _breadcrumb(context),
+        const SizedBox(height: PkSpace.x4),
+        _filterBar(context),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: PkSpace.x16),
+            child: _grid(context),
+          ),
+        ),
+      ],
     );
   }
 

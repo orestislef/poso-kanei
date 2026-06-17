@@ -34,12 +34,16 @@ class PageScaffold extends StatelessWidget {
       controller: controller,
       child: Column(
         children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: PkLayout.container2xl),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(hpad, PkSpace.x7, hpad, PkSpace.x16),
-                child: child,
+          SafeArea(
+            top: false,
+            bottom: false,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: PkLayout.container2xl),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(hpad, PkSpace.x7, hpad, PkSpace.x16),
+                  child: child,
+                ),
               ),
             ),
           ),
@@ -73,7 +77,7 @@ class PkFooter extends StatelessWidget {
               children: [
                 const Logo(size: 18),
                 Text(
-                  'Δοκιμαστική έκδοση · demo · δεδομένα από api.posokanei.gov.gr · Ελληνικά / English',
+                  '© 2026 πόσο κάνει · δεδομένα από api.posokanei.gov.gr',
                   style: PkText.mono(size: PkFont.xs, color: pk.textMuted),
                 ),
               ],

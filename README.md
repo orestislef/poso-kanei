@@ -12,7 +12,14 @@ A grocery price-intelligence app for the Greek market — true price-per-kilo, a
 ![Flutter](https://img.shields.io/badge/Flutter-3.44-027DFD.svg)
 ![Platforms](https://img.shields.io/badge/platforms-web%20·%20android%20·%20ios-555.svg)
 
+🔗 **Live demo / Δοκιμαστικό:** **[orestislef.gr/posokanei](https://orestislef.gr/posokanei/)**
+
 </div>
+
+> ⚠️ **This is a demo / test build.** It runs on top of the public price API
+> `api.posokanei.gov.gr` purely for demonstration — it is not an official client
+> and is not affiliated with the data provider. Prices are whatever the public API
+> returns. / **Δοκιμαστική έκδοση** — μόνο για επίδειξη πάνω στο δημόσιο API.
 
 ---
 

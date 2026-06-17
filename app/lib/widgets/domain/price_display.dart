@@ -66,7 +66,7 @@ class PriceDisplay extends StatelessWidget {
       children: [
         if (showFrom) ...[
           Text(
-            'FROM',
+            'ΑΠΟ',
             style: PkText.mono(
               size: 11,
               weight: FontWeight.w500,

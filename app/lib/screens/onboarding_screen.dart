@@ -23,7 +23,7 @@ const _steps = <_Step>[
       'Φτιάξε την εβδομαδιαία λίστα σου και το πόσο κάνει τη μοιράζει: όλα σε μία αλυσίδα, ή ένα έξυπνο πλάνο 2 στάσεων που σε γλιτώνει τα περισσότερα.',
       'basket'),
   _Step(Icons.trending_down, 'ΠΑΡΑΚΟΛΟΥΘΗΣΗ', 'Αληθινές προσφορές, όχι ψεύτικες',
-      'Το ιστορικό τιμών δείχνει το χαμηλότερο 30 ημερών — έτσι μια «έκπτωση» που δεν ήταν ποτέ πραγματικά φθηνότερη ξεσκεπάζεται. Βάλε ειδοποίηση και την παρακολουθούμε.',
+      'Το ιστορικό τιμών δείχνει το χαμηλότερο 30 ημερών — έτσι μια «έκπτωση» που δεν ήταν ποτέ πραγματικά φθηνότερη ξεσκεπάζεται με μια ματιά.',
       'history'),
 ];
 
@@ -117,24 +117,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1060),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
-                    child: wide
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(child: art),
-                              const SizedBox(width: 48),
-                              Expanded(child: copy),
-                            ],
-                          )
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [art, const SizedBox(height: 32), copy],
-                          ),
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1060),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
+                          child: wide
+                              ? Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(child: art),
+                                    const SizedBox(width: 48),
+                                    Expanded(child: copy),
+                                  ],
+                                )
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [art, const SizedBox(height: 32), copy],
+                                ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

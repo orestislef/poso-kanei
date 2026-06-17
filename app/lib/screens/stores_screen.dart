@@ -118,7 +118,12 @@ class _StoresScreenState extends State<StoresScreen> {
         children: [
           _logo(context, r),
           const SizedBox(height: 12),
-          StoreChip(slug: r.id, name: r.name, size: PkStoreChipSize.lg, showName: true),
+          Text(
+            r.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: PkText.label(size: PkFont.base, weight: FontWeight.w700, color: pk.textPrimary),
+          ),
           if (country.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(country, style: PkText.mono(size: 11, color: pk.textMuted)),

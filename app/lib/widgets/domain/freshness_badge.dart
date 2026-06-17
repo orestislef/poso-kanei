@@ -16,8 +16,8 @@ class FreshnessBadge extends StatelessWidget {
   });
 
   static const List<String> _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μαΐ', 'Ιουν',
+    'Ιουλ', 'Αυγ', 'Σεπ', 'Οκτ', 'Νοε', 'Δεκ',
   ];
 
   @override
@@ -29,12 +29,12 @@ class FreshnessBadge extends StatelessWidget {
     bool stale = false;
 
     if (date == null) {
-      label = 'date unknown';
+      label = 'άγνωστη ημ/νία';
     } else {
       final now = DateTime.now();
       final ageDays = now.difference(date).inDays;
       stale = ageDays > staleDays;
-      label = 'as of ${date.day} ${_months[date.month - 1]}';
+      label = '${date.day} ${_months[date.month - 1]}';
     }
 
     final color = stale ? pk.warningText : pk.textMuted;

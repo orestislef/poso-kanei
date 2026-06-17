@@ -1,5 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../api/images.dart';
 import '../api/models.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
@@ -130,7 +133,19 @@ class _BasketScreenState extends State<BasketScreen> {
       ?pack,
     ];
 
-    return Container(
+    final imageUrl = p.hasImage ? PkImages.display(p.imageUrl) : null;
+    final Widget thumb = (imageUrl != null && imageUrl.isNotEmpty)
+        ? CachedNetworkImage(
+            imageUrl: imageUrl,
+            fit: BoxFit.contain,
+            placeholder: (_, _) => Icon(Icons.shopping_basket_outlined, size: 20, color: pk.textMuted),
+            errorWidget: (_, _, _) => Icon(Icons.shopping_basket_outlined, size: 20, color: pk.textMuted),
+          )
+        : Icon(Icons.shopping_basket_outlined, size: 20, color: pk.textMuted);
+
+    return InkWell(
+      onTap: () => PkNavScope.of(context).openProduct(p),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
         border: last ? null : Border(bottom: BorderSide(color: pk.borderSubtle)),
@@ -145,11 +160,13 @@ class _BasketScreenState extends State<BasketScreen> {
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
+                padding: const EdgeInsets.all(5),
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: pk.surfaceSunken,
                   borderRadius: BorderRadius.circular(PkRadius.md),
                 ),
-                child: Icon(Icons.shopping_basket_outlined, size: 20, color: pk.textMuted),
+                child: thumb,
               ),
             ),
           ),
@@ -194,6 +211,7 @@ class _BasketScreenState extends State<BasketScreen> {
           _RemoveButton(onTap: () => app.removeFromBasket(p.id)),
         ],
       ),
+      ),
     );
   }
 
@@ -231,7 +249,7 @@ class _BasketScreenState extends State<BasketScreen> {
             block: true,
             options: const [
               PkSegment('single', '1 μαγαζί'),
-              PkSegment('split', 'Φθηνότερο split'),
+              PkSegment('split', 'Διαμοιρασμός'),
               PkSegment('balanced', '2 στάσεις'),
             ],
             value: strategy,
@@ -287,15 +305,58 @@ class _BasketScreenState extends State<BasketScreen> {
               'Με όριο 2 μαγαζιά: σχεδόν όλη η εξοικονόμηση του split, με τις μισές στάσεις.',
               style: PkText.body(size: 13, color: pk.textSecondary),
             ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
           PkButton(
             block: true,
             size: PkButtonSize.lg,
-            label: 'Στείλε τη λίστα στα μαγαζιά',
-            iconRight: const Icon(Icons.arrow_forward, size: 18, color: Colors.white),
-            onPressed: () {},
+            label: 'Αντιγραφή λίστας',
+            iconRight: const Icon(Icons.copy_all_outlined, size: 18, color: Colors.white),
+            onPressed: () => _copyList(context, items),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Build a clean, shareable shopping list grouped by cheapest store.
+  String _buildListText(List<Product> items) {
+    final groups = <String, List<Product>>{};
+    for (final p in items) {
+      final slug = _cheapestSlug(p) ?? '—';
+      groups.putIfAbsent(slug, () => []).add(p);
+    }
+
+    final single = items.fold<double>(
+        0, (s, p) => s + (p.priceStats?.avgPrice ?? p.minPrice ?? 0));
+    final split = items.fold<double>(0, (s, p) => s + (p.minPrice ?? 0));
+
+    final b = StringBuffer()
+      ..writeln('🛒 Λίστα αγορών — πόσο κάνει')
+      ..writeln();
+    groups.forEach((slug, groupItems) {
+      final name = kRetailers[slug]?.name ?? slug;
+      b.writeln('🏬 $name (${groupItems.length} ${_plural(groupItems.length)})');
+      for (final p in groupItems) {
+        b.writeln('   • ${p.name} — ${money(_cheapestPrice(p))}');
+      }
+      b.writeln();
+    });
+    b
+      ..writeln('Σύνολο (φθηνότερος διαμοιρασμός): ${money(split)}')
+      ..writeln('Εκτίμηση εξοικονόμησης vs μέσος όρος: ${money(single - split)}')
+      ..writeln('${groups.length} ${groups.length == 1 ? 'στάση' : 'στάσεις'}')
+      ..writeln()
+      ..write('posokanei · orestislef.gr/posokanei');
+    return b.toString();
+  }
+
+  Future<void> _copyList(BuildContext context, List<Product> items) async {
+    await Clipboard.setData(ClipboardData(text: _buildListText(items)));
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text('Η λίστα αγορών αντιγράφηκε — επικόλλησέ την όπου θες.'),
       ),
     );
   }

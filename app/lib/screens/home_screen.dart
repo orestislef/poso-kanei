@@ -22,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<Paginated<Product>>? _drops;
   Future<List<Retailer>>? _stores;
   bool _init = false;
-  final _searchCtrl = TextEditingController();
 
   @override
   void didChangeDependencies() {
@@ -34,17 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _cats = api.fetchCategoryTree();
     _drops = api.fetchProducts(hasDiscount: true, pageSize: 8);
     _stores = api.fetchRetailers();
-  }
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
-
-  void _search() {
-    final q = _searchCtrl.text.trim();
-    if (q.isNotEmpty) PkNavScope.of(context).openCategory(query: q);
   }
 
   @override
@@ -80,57 +68,51 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _hero(BuildContext context) {
     final pk = context.pk;
     final phone = pkIsPhone(context);
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        Positioned(
-          top: -120,
-          child: Container(
-            width: 760,
-            height: 520,
-            decoration: BoxDecoration(
-              gradient: RadialGradient(colors: [pk.primarySoft, pk.primarySoft.withValues(alpha: 0)], stops: const [0, 0.6]),
+    return SizedBox(
+      width: double.infinity,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          Positioned(
+            top: -120,
+            child: Container(
+              width: 760,
+              height: 520,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(colors: [pk.primarySoft, pk.primarySoft.withValues(alpha: 0)], stops: const [0, 0.6]),
+              ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 8),
-          child: Column(
-            children: [
-              Text('PRICE INTELLIGENCE · ΕΛΛΑΔΑ', style: PkText.eyebrow(size: PkFont.xs, color: pk.dealText)),
-              const SizedBox(height: 16),
-              Text('Μην ρωτάς πόσο κάνει.',
-                  textAlign: TextAlign.center,
-                  style: PkText.display(size: phone ? 34 : 56, weight: FontWeight.w800, color: pk.textPrimary, tracking: -0.03, height: 1.04)),
-              Text('Ρώτα πού είναι φθηνότερο.',
-                  textAlign: TextAlign.center,
-                  style: PkText.display(size: phone ? 34 : 56, weight: FontWeight.w800, color: pk.primary, tracking: -0.03, height: 1.04)),
-              const SizedBox(height: 18),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Text(
-                  'Σύγκρινε κάθε ελληνικό σούπερ μάρκετ με βάση την πραγματική τιμή ανά κιλό, φτιάξε καλάθι και άσε το πόσο κάνει να διαλέξει τα φθηνότερα μαγαζιά.',
-                  textAlign: TextAlign.center,
-                  style: PkText.body(size: phone ? 15 : 18, color: pk.textSecondary, height: 1.5),
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('PRICE INTELLIGENCE · ΕΛΛΑΔΑ', textAlign: TextAlign.center, style: PkText.eyebrow(size: PkFont.xs, color: pk.dealText)),
+                const SizedBox(height: 16),
+                Text('Μην ρωτάς πόσο κάνει.',
+                    textAlign: TextAlign.center,
+                    style: PkText.display(size: phone ? 34 : 56, weight: FontWeight.w800, color: pk.textPrimary, tracking: -0.03, height: 1.04)),
+                Text('Ρώτα πού είναι φθηνότερο.',
+                    textAlign: TextAlign.center,
+                    style: PkText.display(size: phone ? 34 : 56, weight: FontWeight.w800, color: pk.primary, tracking: -0.03, height: 1.04)),
+                const SizedBox(height: 18),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Text(
+                    'Σύγκρινε κάθε ελληνικό σούπερ μάρκετ με βάση την πραγματική τιμή ανά κιλό, φτιάξε καλάθι και άσε το πόσο κάνει να διαλέξει τα φθηνότερα μαγαζιά.',
+                    textAlign: TextAlign.center,
+                    style: PkText.body(size: phone ? 15 : 18, color: pk.textSecondary, height: 1.5),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 26),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: PkInput(
-                  controller: _searchCtrl,
-                  size: PkInputSize.lg,
-                  placeholder: 'Δοκίμασε "ελαιόλαδο" ή "Lavazza"…',
-                  iconLeft: Icon(Icons.search, size: 20, color: pk.textMuted),
-                  onSubmitted: (_) => _search(),
-                ),
-              ),
-              const SizedBox(height: 34),
-              _statsRow(context),
-            ],
+                const SizedBox(height: 34),
+                _statsRow(context),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -230,22 +212,33 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         if (snap.hasError || !snap.hasData) return const SizedBox.shrink();
         final stores = snap.data!;
+        final nav = PkNavScope.of(context);
         return Wrap(
           spacing: 14,
           runSpacing: 14,
           children: [
             for (final s in stores)
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: pk.surfaceRaised,
-                  border: Border.all(color: pk.borderSubtle),
-                  borderRadius: BorderRadius.circular(PkRadius.lg),
-                  boxShadow: pk.shadowXs,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => nav.openCategory(retailer: s.id, retailerName: s.name),
+                  child: Tooltip(
+                    message: s.name,
+                    child: Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: pk.surfaceRaised,
+                        border: Border.all(color: pk.borderSubtle),
+                        borderRadius: BorderRadius.circular(PkRadius.lg),
+                        boxShadow: pk.shadowXs,
+                      ),
+                      alignment: Alignment.center,
+                      child: StoreChip(slug: s.id, name: s.name, size: PkStoreChipSize.lg, showName: false, logo: true),
+                    ),
+                  ),
                 ),
-                alignment: Alignment.center,
-                child: StoreChip(slug: s.id, name: s.name, size: PkStoreChipSize.lg, showName: false),
               ),
           ],
         );
