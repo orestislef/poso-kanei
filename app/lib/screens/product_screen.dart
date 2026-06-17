@@ -489,7 +489,8 @@ class _WhereToBuy extends StatelessWidget {
     final rows = product.sortedByPrice;
     final unit = product.unit ?? 'kg';
     final item = app.itemFor(product.id);
-    final selectedSlug = item?.effectiveStore; // null when not yet in basket
+    // Default the selection to the cheapest store until the user picks another.
+    final selectedSlug = item?.effectiveStore ?? (rows.isNotEmpty ? rows.first.retailer : null);
     return PkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

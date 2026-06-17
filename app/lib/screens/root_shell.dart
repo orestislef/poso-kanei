@@ -2,50 +2,37 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../api/models.dart';
+import '../i18n/strings.dart';
+import '../router.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
 import '../widgets/core.dart';
-import 'basket_screen.dart';
-import 'category_screen.dart';
-import 'home_screen.dart';
 import 'nav.dart';
-import 'product_screen.dart';
-import 'stores_screen.dart';
 
-/// The persistent app frame: glass header + nested navigator + (phone) bottom nav.
-class RootShell extends StatefulWidget {
-  const RootShell({super.key});
-  @override
-  State<RootShell> createState() => _RootShellState();
-}
+/// Translates the [PkNav] contract into clean, language-prefixed go_router URLs.
+class _ShellNav implements PkNav {
+  final BuildContext context;
+  final Lang lang;
+  _ShellNav(this.context, this.lang);
 
-class _RootShellState extends State<RootShell> implements PkNav {
-  final _navKey = GlobalKey<NavigatorState>();
-  final _searchCtrl = TextEditingController();
-  PkTab _tab = PkTab.home;
-
-  Route<void> _route(Widget page) => MaterialPageRoute(builder: (_) => page);
-
-  void _resetTo(Widget page) =>
-      _navKey.currentState?.pushAndRemoveUntil(_route(page), (r) => false);
+  String get _l => lang.code;
 
   @override
   void goTab(PkTab tab) {
-    setState(() => _tab = tab);
     switch (tab) {
       case PkTab.home:
-        _searchCtrl.clear();
-        _resetTo(const HomeScreen());
+        context.go('/$_l');
       case PkTab.deals:
-        _resetTo(const CategoryScreen(dealsOnly: true, categoryName: 'Προσφορές'));
+        context.go('/$_l/deals');
       case PkTab.stores:
-        _resetTo(const StoresScreen());
+        context.go('/$_l/stores');
       case PkTab.basket:
-        _resetTo(const BasketScreen());
+        context.go('/$_l/basket');
     }
   }
 
@@ -58,34 +45,79 @@ class _RootShellState extends State<RootShell> implements PkNav {
     String? retailerName,
     bool dealsOnly = false,
   }) {
-    if (dealsOnly) setState(() => _tab = PkTab.deals);
-    _navKey.currentState?.push(_route(CategoryScreen(
-      categoryId: categoryId,
-      categoryName: categoryName,
-      query: query,
-      retailer: retailer,
-      retailerName: retailerName,
-      dealsOnly: dealsOnly,
-    )));
+    if (dealsOnly) {
+      context.go('/$_l/deals');
+    } else if (categoryId != null) {
+      context.push('/$_l/category/$categoryId', extra: categoryName);
+    } else if (retailer != null) {
+      context.push('/$_l/store/$retailer', extra: retailerName);
+    } else if (query != null && query.trim().isNotEmpty) {
+      context.push('/$_l/search?q=${Uri.encodeQueryComponent(query.trim())}');
+    } else {
+      context.push('/$_l/products');
+    }
   }
 
   @override
-  void openProduct(Product product, {String? heroTag}) =>
-      _navKey.currentState?.push(_route(ProductScreen(product: product, heroTag: heroTag)));
+  void openProduct(Product product, {String? heroTag}) => context.push(
+        '/$_l/product/${product.id}',
+        extra: ProductArgs(product: product, heroTag: heroTag),
+      );
 
   @override
-  void openProductById(String id) =>
-      _navKey.currentState?.push(_route(ProductScreen(productId: id)));
+  void openProductById(String id) => context.push('/$_l/product/$id');
 
   @override
   void back() {
-    if (_navKey.currentState?.canPop() ?? false) _navKey.currentState?.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/$_l');
+    }
+  }
+}
+
+/// The persistent app frame: glass header + routed child + (phone) bottom nav.
+class RootShell extends StatefulWidget {
+  final GoRouterState state;
+  final Widget child;
+  const RootShell({super.key, required this.state, required this.child});
+
+  @override
+  State<RootShell> createState() => _RootShellState();
+}
+
+class _RootShellState extends State<RootShell> {
+  final _searchCtrl = TextEditingController();
+
+  Lang get _lang => Lang.fromCode(
+      widget.state.uri.pathSegments.isNotEmpty ? widget.state.uri.pathSegments.first : 'el');
+
+  PkTab get _tab {
+    final segs = widget.state.uri.pathSegments;
+    if (segs.length >= 2) {
+      switch (segs[1]) {
+        case 'deals':
+          return PkTab.deals;
+        case 'stores':
+          return PkTab.stores;
+        case 'basket':
+          return PkTab.basket;
+      }
+    }
+    return PkTab.home;
   }
 
-  void _onSearchSubmit(String q) {
-    final query = q.trim();
-    if (query.isEmpty) return;
-    openCategory(query: query);
+  void _switchLang() {
+    final next = _lang == Lang.el ? Lang.en : Lang.el;
+    final segs = widget.state.uri.pathSegments.toList();
+    if (segs.isEmpty) {
+      segs.add(next.code);
+    } else {
+      segs[0] = next.code;
+    }
+    final q = widget.state.uri.hasQuery ? '?${widget.state.uri.query}' : '';
+    context.go('/${segs.join('/')}$q');
   }
 
   @override
@@ -98,11 +130,20 @@ class _RootShellState extends State<RootShell> implements PkNav {
   Widget build(BuildContext context) {
     final app = AppScope.of(context);
     final pk = context.pk;
+    final lang = _lang;
+
+    // Keep app language in sync with the URL (source of truth).
+    if (app.lang != lang) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) app.setLang(lang);
+      });
+    }
+
+    final nav = _ShellNav(context, lang);
     final width = MediaQuery.of(context).size.width;
     final showBottomNav = width < 768;
 
-    final overlay = (app.dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
-        .copyWith(
+    final overlay = (app.dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarDividerColor: Colors.transparent,
@@ -111,18 +152,7 @@ class _RootShellState extends State<RootShell> implements PkNav {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: overlay,
       child: PkNavScope(
-      nav: this,
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (didPop) return;
-          final nav = _navKey.currentState;
-          if (nav != null && nav.canPop()) {
-            nav.pop();
-          } else {
-            SystemNavigator.pop();
-          }
-        },
+        nav: nav,
         child: Scaffold(
           backgroundColor: pk.canvas,
           body: Column(
@@ -132,28 +162,25 @@ class _RootShellState extends State<RootShell> implements PkNav {
                 activeTab: _tab,
                 basketCount: app.basketCount,
                 dark: app.dark,
+                lang: lang,
                 showInlineSearch: width >= 1080,
                 showNavLinks: width >= 768,
-                onLogo: () => goTab(PkTab.home),
-                onTab: goTab,
+                onLogo: () => nav.goTab(PkTab.home),
+                onTab: nav.goTab,
                 onToggleTheme: app.toggleTheme,
-                onSearchSubmit: _onSearchSubmit,
-                onSearchTapPhone: () => openCategory(),
+                onToggleLang: _switchLang,
+                onSearchSubmit: (q) {
+                  if (q.trim().isNotEmpty) nav.openCategory(query: q);
+                },
+                onSearchTapPhone: () => nav.openCategory(),
               ),
-              Expanded(
-                child: Navigator(
-                  key: _navKey,
-                  onGenerateRoute: (settings) =>
-                      MaterialPageRoute(builder: (_) => const HomeScreen(), settings: settings),
-                ),
-              ),
+              Expanded(child: widget.child),
             ],
           ),
           bottomNavigationBar: showBottomNav
-              ? _BottomNav(active: _tab, basketCount: app.basketCount, onTab: goTab)
+              ? _BottomNav(active: _tab, basketCount: app.basketCount, onTab: nav.goTab)
               : null,
         ),
-      ),
       ),
     );
   }
@@ -165,11 +192,13 @@ class _GlassHeader extends StatelessWidget {
   final PkTab activeTab;
   final int basketCount;
   final bool dark;
+  final Lang lang;
   final bool showInlineSearch;
   final bool showNavLinks;
   final VoidCallback onLogo;
   final ValueChanged<PkTab> onTab;
   final VoidCallback onToggleTheme;
+  final VoidCallback onToggleLang;
   final ValueChanged<String> onSearchSubmit;
   final VoidCallback onSearchTapPhone;
 
@@ -178,11 +207,13 @@ class _GlassHeader extends StatelessWidget {
     required this.activeTab,
     required this.basketCount,
     required this.dark,
+    required this.lang,
     required this.showInlineSearch,
     required this.showNavLinks,
     required this.onLogo,
     required this.onTab,
     required this.onToggleTheme,
+    required this.onToggleLang,
     required this.onSearchSubmit,
     required this.onSearchTapPhone,
   });
@@ -190,6 +221,7 @@ class _GlassHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final hpad = pkHeaderPad(context);
     return ClipRect(
       child: BackdropFilter(
@@ -216,7 +248,7 @@ class _GlassHeader extends StatelessWidget {
                             constraints: const BoxConstraints(maxWidth: 520),
                             child: PkInput(
                               controller: searchController,
-                              placeholder: 'Αναζήτησε 8.500+ προϊόντα — γάλα, ελαιόλαδο, καφέ…',
+                              placeholder: t.searchHint,
                               iconLeft: Icon(Icons.search, size: 18, color: pk.textMuted),
                               onSubmitted: onSearchSubmit,
                             ),
@@ -226,19 +258,20 @@ class _GlassHeader extends StatelessWidget {
                         const Spacer(),
                       if (showNavLinks) ...[
                         const SizedBox(width: 16),
-                        _NavLink(label: 'Αρχική', active: activeTab == PkTab.home, onTap: () => onTab(PkTab.home)),
-                        _NavLink(label: 'Προσφορές', active: activeTab == PkTab.deals, onTap: () => onTab(PkTab.deals)),
-                        _NavLink(label: 'Καταστήματα', active: activeTab == PkTab.stores, onTap: () => onTab(PkTab.stores)),
+                        _NavLink(label: t.navHome, active: activeTab == PkTab.home, onTap: () => onTab(PkTab.home)),
+                        _NavLink(label: t.navDeals, active: activeTab == PkTab.deals, onTap: () => onTab(PkTab.deals)),
+                        _NavLink(label: t.navStores, active: activeTab == PkTab.stores, onTap: () => onTab(PkTab.stores)),
                       ],
                       const SizedBox(width: 6),
                       if (!showInlineSearch)
                         PkIconButton(
-                          semanticLabel: 'Αναζήτηση',
+                          semanticLabel: t.searchShort,
                           onPressed: onSearchTapPhone,
                           child: Icon(Icons.search, size: 18, color: pk.textSecondary),
                         ),
+                      _LangButton(lang: lang, onTap: onToggleLang, semanticLabel: t.toggleLang),
                       PkIconButton(
-                        semanticLabel: 'Εναλλαγή θέματος',
+                        semanticLabel: t.toggleTheme,
                         onPressed: onToggleTheme,
                         child: Icon(dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined, size: 18, color: pk.textSecondary),
                       ),
@@ -258,6 +291,34 @@ class _GlassHeader extends StatelessWidget {
 
 double pkHeaderPad(BuildContext c) =>
     MediaQuery.of(c).size.width < PkLayout.bpPhone ? PkSpace.x4 : PkSpace.x8;
+
+/// EL / EN language toggle pill.
+class _LangButton extends StatelessWidget {
+  final Lang lang;
+  final VoidCallback onTap;
+  final String semanticLabel;
+  const _LangButton({required this.lang, required this.onTap, required this.semanticLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    final pk = context.pk;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(PkRadius.sm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Text(
+            lang == Lang.el ? 'EL' : 'EN',
+            style: PkText.mono(size: 13, weight: FontWeight.w700, color: pk.textSecondary, tracking: 0.04),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _NavLink extends StatelessWidget {
   final String label;
@@ -341,11 +402,12 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final items = <(PkTab, IconData, String)>[
-      (PkTab.home, Icons.home_outlined, 'Αρχική'),
-      (PkTab.deals, Icons.local_offer_outlined, 'Προσφορές'),
-      (PkTab.stores, Icons.storefront_outlined, 'Μαγαζιά'),
-      (PkTab.basket, Icons.shopping_basket_outlined, 'Καλάθι'),
+      (PkTab.home, Icons.home_outlined, t.navHome),
+      (PkTab.deals, Icons.local_offer_outlined, t.navDeals),
+      (PkTab.stores, Icons.storefront_outlined, t.navStores),
+      (PkTab.basket, Icons.shopping_basket_outlined, t.navBasket),
     ];
     return Container(
       decoration: BoxDecoration(

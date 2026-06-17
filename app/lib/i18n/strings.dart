@@ -26,8 +26,7 @@ class T {
         '© 2026 πόσο κάνει · data from api.posokanei.gov.gr');
 
   // ── Splash ──────────────────────────────────────────────────────────────
-  String checkingStoresPre() => _('έλεγχος ', 'checking ');
-  String checkingStoresPost() => _(' καταστημάτων…', ' stores…');
+  String get checkingStores => _('έλεγχος καταστημάτων…', 'checking stores…');
 
   // ── Header / nav ──────────────────────────────────────────────────────────
   String get navHome => _('Αρχική', 'Home');
@@ -83,7 +82,9 @@ class T {
   String get secAllCategories => _('Όλες οι κατηγορίες', 'All categories');
   String get secDrops => _('Οι μεγαλύτερες πτώσεις σήμερα', "Today's biggest drops");
   String get secAllDeals => _('Όλες οι προσφορές', 'All deals');
-  String get secStores => _('Συγκρίνουμε 22 μαγαζιά', 'We compare 22 stores');
+  String secStoresCount(int n) =>
+      _('Συγκρίνουμε $n μαγαζιά', 'We compare $n stores');
+  String get secStoresGeneric => _('Συγκρίνουμε σούπερ μάρκετ', 'We compare supermarkets');
   String get noDropsToday => _(
       'Δεν υπάρχουν νέες πτώσεις σήμερα.', 'No new drops today.');
 

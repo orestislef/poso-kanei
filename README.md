@@ -16,10 +16,9 @@ A grocery price-intelligence app for the Greek market — true price-per-kilo, a
 
 </div>
 
-> ⚠️ **This is a demo / test build.** It runs on top of the public price API
-> `api.posokanei.gov.gr` purely for demonstration — it is not an official client
-> and is not affiliated with the data provider. Prices are whatever the public API
-> returns. / **Δοκιμαστική έκδοση** — μόνο για επίδειξη πάνω στο δημόσιο API.
+> ℹ️ Built on the public price API `api.posokanei.gov.gr`. It is an independent
+> client, not affiliated with the data provider; prices are whatever the public
+> API returns. / Ανεξάρτητη εφαρμογή πάνω στο δημόσιο API — όχι επίσημος πελάτης.
 
 ---
 
@@ -36,11 +35,13 @@ A grocery price-intelligence app for the Greek market — true price-per-kilo, a
 - **🏷️ Πραγματική τιμή ανά μονάδα (€/kg, €/L).** Κατατάσσει κάθε σούπερ μάρκετ με βάση το
   πραγματικό κόστος, όχι την τιμή της ετικέτας. Συχνά η μεγάλη συσκευασία που φαίνεται ακριβότερη
   βγαίνει φθηνότερη ανά κιλό.
-- **🧺 Έξυπνο καλάθι.** Φτιάχνεις τη λίστα σου και η εφαρμογή βρίσκει τον φθηνότερο τρόπο: όλα σε
-  ένα μαγαζί, ή ένα έξυπνο πλάνο 2 στάσεων που σε γλιτώνει τα περισσότερα.
+- **🧺 Έξυπνο καλάθι.** Διαλέγεις από ποιο μαγαζί παίρνεις κάθε προϊόν, το καλάθι ομαδοποιεί «τι
+  παίρνεις από πού», προτείνει το φθηνότερο και αντιγράφεις τη λίστα για κοινοποίηση.
 - **📉 Ιστορικό τιμών.** Δείχνει το χαμηλότερο των τελευταίων 30 ημερών — έτσι μια «προσφορά» που
   δεν ήταν ποτέ πραγματικά φθηνότερη ξεσκεπάζεται.
-- **🔎 Αναζήτηση & κατηγορίες.** Δέντρο 24 κατηγοριών, ασαφής αναζήτηση, κατάλογος 20+ καταστημάτων.
+- **🔎 Αναζήτηση & κατηγορίες.** Δέντρο κατηγοριών, ασαφής αναζήτηση, κατάλογος 20+ καταστημάτων.
+- **🔗 Δίγλωσσο με μοιραζόμενα URL.** Πλήρη Ελληνικά/Αγγλικά με τη γλώσσα στο URL (`/el`, `/en`)·
+  κατηγορίες, αναζήτηση, μαγαζιά και προϊόντα έχουν σταθερό, κοινοποιήσιμο σύνδεσμο.
 
 ### Χαρακτηριστικά
 
@@ -62,11 +63,14 @@ prices — it tells you **where to shop to spend less.**
 
 - **🏷️ True unit price (€/kg, €/L).** Ranks every supermarket by real cost, not sticker price.
   The bigger pack that looks dearer is often the cheapest per kilo.
-- **🧺 Smart basket optimizer.** Build your list and the app works out the cheapest way to buy it:
-  everything at one chain, or a smart 2-stop plan that saves the most.
+- **🧺 Smart basket.** Pick which store you buy each item from; the basket groups "what to buy
+  where", flags a cheaper store per item, one-tap optimizes to the cheapest, and copies a clean
+  shareable list.
 - **📉 Native price history.** Shows the 30-day low, so a "discount" that was never actually lower
   gets called out.
-- **🔎 Search & categories.** A 24-root category tree, fuzzy search, a 20+ store directory.
+- **🔎 Search & categories.** A category tree, fuzzy search, a 20+ store directory.
+- **🔗 Bilingual, shareable URLs.** Full Greek/English with the language in the URL (`/el`, `/en`);
+  categories, search, stores and products each have a stable, shareable link.
 
 ### Surfaces
 
@@ -100,9 +104,10 @@ flutter build ipa        # iOS
 
 - **Flutter** — single codebase for web, Android and iOS.
 - **Material 3** theming with a custom design system (warm Mediterranean palette, full dark theme).
+- **go_router** clean-path URLs (path strategy, no `#`) with a language prefix and a 404 page.
 - Type: **Archivo** (display & prices, tabular figures), **Commissioner** (body, Greek-native),
   **Spline Sans Mono** (technical labels) — all cover the full Greek glyph set.
-- Networking via `http`; images cached with `cached_network_image`.
+- Networking via `http`; images cached with `cached_network_image`; edge-to-edge with safe areas.
 
 ## 🔌 API
 
@@ -132,10 +137,14 @@ app/
 
 ## 🗺️ Roadmap
 
-- Price-drop push alerts
-- Reusable weekly lists & basket-inflation tracking
-- EU VAT / cross-border price view
-- Barcode scan → product match
+- [x] Real per-unit (€/kg, €/L) ranking across stores
+- [x] Per-product store selection + "what to buy where" basket
+- [x] Native 30-day price history
+- [x] Full Greek/English with language in the URL + shareable deep links
+- [ ] Saved & reusable weekly lists
+- [ ] Price-drop notifications
+- [ ] EU VAT / cross-border price view
+- [ ] Barcode scan → product match
 
 ## 📄 License
 

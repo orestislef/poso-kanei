@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../api/images.dart';
 import '../api/models.dart';
+import '../i18n/strings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
@@ -51,17 +52,18 @@ class _StoresScreenState extends State<StoresScreen> {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     return PageScaffold(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Καταστήματα που συγκρίνουμε',
+            t.storesTitle,
             style: PkText.display(size: 30, weight: FontWeight.w800, color: pk.textPrimary, tracking: -0.02),
           ),
           const SizedBox(height: 6),
           Text(
-            'Αλυσίδες σε Ελλάδα και ΕΕ, ανανεώνονται συνεχώς.',
+            t.storesSubtitle,
             style: PkText.body(size: 16, color: pk.textSecondary, height: 1.5),
           ),
           const SizedBox(height: 22),
@@ -82,15 +84,15 @@ class _StoresScreenState extends State<StoresScreen> {
               }
               final stores = _sorted(snap.data!);
               if (stores.isEmpty) {
-                return const PkEmptyView(
+                return PkEmptyView(
                   icon: Icons.storefront_outlined,
-                  message: 'Δεν βρέθηκαν καταστήματα.',
+                  message: t.noStores,
                 );
               }
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  PkBadge(label: '${stores.length} καταστήματα', tone: PkBadgeTone.neutral),
+                  PkBadge(label: t.storesCount(stores.length), tone: PkBadgeTone.neutral),
                   const SizedBox(height: 22),
                   PkResponsiveGrid(
                     columnsFor: _columnsFor,
@@ -130,7 +132,7 @@ class _StoresScreenState extends State<StoresScreen> {
           ],
           const SizedBox(height: 12),
           PkTextLink(
-            label: 'Περιήγηση καταστήματος',
+            label: context.t.browseStore,
             onTap: () => nav.openCategory(retailer: r.id, retailerName: r.name),
           ),
         ],

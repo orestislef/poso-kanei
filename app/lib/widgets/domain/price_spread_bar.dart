@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
 
@@ -150,9 +151,9 @@ class _PriceSpreadBarState extends State<PriceSpreadBar> with SingleTickerProvid
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            label(_fmt(widget.min), 'φθηνότερη', pk.saveText, CrossAxisAlignment.start),
-            label(_fmt(widget.avg), 'μέση', pk.textPrimary, CrossAxisAlignment.center),
-            label(_fmt(widget.max), 'υψηλότερη', pk.textPrimary, CrossAxisAlignment.end),
+            label(_fmt(widget.min), context.t.spreadCheapest, pk.saveText, CrossAxisAlignment.start),
+            label(_fmt(widget.avg), context.t.spreadAvg, pk.textPrimary, CrossAxisAlignment.center),
+            label(_fmt(widget.max), context.t.spreadHighest, pk.textPrimary, CrossAxisAlignment.end),
           ],
         ),
       ],

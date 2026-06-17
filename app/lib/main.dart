@@ -1,15 +1,20 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'router.dart';
 import 'screens/onboarding_screen.dart';
-import 'screens/root_shell.dart';
 import 'screens/splash_screen.dart';
 import 'state/app_state.dart';
 import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Clean, shareable URLs (no #) on web, backed by the server's SPA fallback.
+  if (kIsWeb) usePathUrlStrategy();
   // Draw edge-to-edge behind the status / navigation bars; SafeArea inside the
   // shell keeps interactive content clear of notches and the home indicator.
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -29,6 +34,7 @@ class PosoKaneiApp extends StatefulWidget {
 
 class _PosoKaneiAppState extends State<PosoKaneiApp> {
   final PkAppState _state = PkAppState();
+  final GoRouter _router = buildRouter();
 
   @override
   void dispose() {
@@ -42,34 +48,35 @@ class _PosoKaneiAppState extends State<PosoKaneiApp> {
       listenable: _state,
       builder: (context, _) => AppScope(
         state: _state,
-        child: MaterialApp(
+        child: MaterialApp.router(
           title: 'πόσο κάνει',
           debugShowCheckedModeBanner: false,
           theme: PkTheme.light,
           darkTheme: PkTheme.dark,
           themeMode: _state.themeMode,
-          home: const _Boot(),
+          routerConfig: _router,
+          builder: (context, child) => _BootGate(child: child ?? const SizedBox.shrink()),
         ),
       ),
     );
   }
 }
 
-/// Splash → onboarding → app.
-class _Boot extends StatefulWidget {
-  const _Boot();
+/// Splash → onboarding → app, layered over the routed content so deep links
+/// still resolve once the gate clears.
+class _BootGate extends StatefulWidget {
+  final Widget child;
+  const _BootGate({required this.child});
   @override
-  State<_Boot> createState() => _BootState();
+  State<_BootGate> createState() => _BootGateState();
 }
 
 enum _Phase { splash, onboarding, app }
 
 const _kOnboardingSeen = 'pk_onboarding_seen';
 
-class _BootState extends State<_Boot> {
+class _BootGateState extends State<_BootGate> {
   _Phase _phase = _Phase.splash;
-
-  // Loaded while the splash plays; null until known.
   bool? _seen;
   SharedPreferences? _prefs;
 
@@ -82,12 +89,11 @@ class _BootState extends State<_Boot> {
       setState(() => _seen = prefs.getBool(_kOnboardingSeen) ?? false);
     }).catchError((_) {
       if (!mounted) return;
-      setState(() => _seen = false); // storage unavailable → show onboarding
+      setState(() => _seen = false);
     });
   }
 
   void _afterSplash() {
-    // If prefs haven't resolved yet, treat as not-seen (show onboarding).
     setState(() => _phase = (_seen ?? false) ? _Phase.app : _Phase.onboarding);
   }
 
@@ -104,7 +110,7 @@ class _BootState extends State<_Boot> {
       case _Phase.onboarding:
         return OnboardingScreen(onDone: _finishOnboarding);
       case _Phase.app:
-        return const RootShell();
+        return widget.child;
     }
   }
 }

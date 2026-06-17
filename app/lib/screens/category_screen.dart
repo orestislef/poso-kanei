@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/api_client.dart';
 import '../api/models.dart';
+import '../i18n/strings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
@@ -215,11 +216,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(10, 4, 10, PkSpace.x3),
           child: Text(
-            'ΚΑΤΗΓΟΡΙΕΣ',
+            context.t.railCategories,
             style: PkText.mono(size: PkFont.xs2, color: pk.textMuted, tracking: 1.2),
           ),
         ),
-        _railItem(context, label: 'Όλα τα προϊόντα', active: allActive, onTap: () => PkNavScope.of(context).openCategory()),
+        _railItem(context, label: context.t.allProducts, active: allActive, onTap: () => PkNavScope.of(context).openCategory()),
         const SizedBox(height: PkSpace.x1 / 2 + 1),
         FutureBuilder<List<Category>>(
           future: _tree,
@@ -276,7 +277,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         if (phone) ...[
           PkInput(
             controller: _searchCtrl,
-            placeholder: 'Αναζήτησε προϊόν…',
+            placeholder: context.t.searchProduct,
             iconLeft: Icon(Icons.search, size: 18, color: context.pk.textMuted),
             onSubmitted: (v) {
               final q = v.trim();
@@ -297,28 +298,30 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Widget _breadcrumb(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     String lead;
-    if (widget.query != null) {
-      lead = 'Αποτελέσματα για «${widget.query}»';
+    if (widget.query != null && widget.query!.isNotEmpty) {
+      lead = t.resultsFor(widget.query!);
     } else if (widget.retailerName != null) {
-      lead = 'Κατάστημα: ${widget.retailerName}';
+      lead = t.storeLead(widget.retailerName!);
     } else if (widget.dealsOnly) {
-      lead = 'Προσφορές';
+      lead = t.deals;
     } else {
-      lead = widget.categoryName ?? 'Όλα τα προϊόντα';
+      lead = widget.categoryName ?? t.allProducts;
     }
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(lead, style: PkText.body(size: PkFont.sm, color: pk.textSecondary)),
         Text('  ·  ', style: PkText.body(size: PkFont.sm, color: pk.textMuted)),
-        Text('${_visible.length} προϊόντα', style: PkText.mono(size: PkFont.xs, color: pk.textMuted)),
+        Text(t.productCount(_visible.length), style: PkText.mono(size: PkFont.xs, color: pk.textMuted)),
       ],
     );
   }
 
   Widget _filterBar(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     return Container(
       margin: const EdgeInsets.only(bottom: PkSpace.x5),
       padding: const EdgeInsets.symmetric(horizontal: PkSpace.x4, vertical: PkSpace.x3),
@@ -338,21 +341,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
             children: [
               Icon(Icons.tune, size: 16, color: pk.textSecondary),
               const SizedBox(width: PkSpace.x2),
-              Text('Ταξινόμηση', style: PkText.label(size: PkFont.sm, weight: FontWeight.w600, color: pk.textSecondary)),
+              Text(t.sort, style: PkText.label(size: PkFont.sm, weight: FontWeight.w600, color: pk.textSecondary)),
               const SizedBox(width: PkSpace.x3),
               PkSegmentedControl<String>(
                 value: _sort,
                 onChanged: (v) => setState(() => _sort = v),
-                options: const [
-                  PkSegment('unit', '€/μον.'),
-                  PkSegment('price', 'Τιμή'),
-                  PkSegment('deal', 'Έκπτωση %'),
+                options: [
+                  PkSegment('unit', t.sortUnit),
+                  PkSegment('price', t.sortPrice),
+                  PkSegment('deal', t.sortDeal),
                 ],
               ),
             ],
           ),
           PkSwitch(
-            label: 'Μόνο σε προσφορά',
+            label: t.onlyDeals,
             value: _onlyDeals,
             onChanged: (v) => setState(() => _onlyDeals = v),
           ),
@@ -373,9 +376,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
         }
         final items = _visible;
         if (items.isEmpty) {
-          return const PkEmptyView(
+          return PkEmptyView(
             icon: Icons.search,
-            message: 'Καμία αντιστοίχιση. Δοκίμασε άλλον όρο — η αναζήτηση είναι "χαλαρή", οπότε γράψε ελεύθερα.',
+            message: context.t.noMatch,
           );
         }
         return Column(
@@ -398,7 +401,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2.5),
                       )
                     : PkButton(
-                        label: 'Φόρτωσε περισσότερα',
+                        label: context.t.loadMore,
                         variant: PkButtonVariant.secondary,
                         onPressed: _loadMore,
                       ),
@@ -439,7 +442,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _Chip(label: 'Όλα', active: allActive, onTap: () => nav.openCategory()),
+              _Chip(label: context.t.all, active: allActive, onTap: () => nav.openCategory()),
               for (final c in roots) ...[
                 const SizedBox(width: PkSpace.x2),
                 _Chip(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/images.dart';
 import '../api/models.dart';
+import '../i18n/strings.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
@@ -38,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final nav = PkNavScope.of(context);
+    final t = context.t;
     return PageScaffold(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,20 +47,25 @@ class _HomeScreenState extends State<HomeScreen> {
           _hero(context),
           const SizedBox(height: 44),
           PkSectionHeader(
-            title: 'Περιήγηση κατηγοριών',
-            linkLabel: 'Όλες οι κατηγορίες',
+            title: t.secCategories,
+            linkLabel: t.secAllCategories,
             onLink: () => nav.openCategory(),
           ),
           _categories(context),
           const SizedBox(height: 44),
           PkSectionHeader(
-            title: "Οι μεγαλύτερες πτώσεις σήμερα",
-            linkLabel: 'Όλες οι προσφορές',
+            title: t.secDrops,
+            linkLabel: t.secAllDeals,
             onLink: () => nav.goTab(PkTab.deals),
           ),
           _dropsGrid(context),
           const SizedBox(height: 44),
-          const PkSectionHeader(title: 'Συγκρίνουμε 22 μαγαζιά'),
+          FutureBuilder<List<Retailer>>(
+            future: _stores,
+            builder: (context, snap) => PkSectionHeader(
+              title: snap.hasData ? t.secStoresCount(snap.data!.length) : t.secStoresGeneric,
+            ),
+          ),
           _storeStrip(context),
         ],
       ),
@@ -67,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _hero(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final phone = pkIsPhone(context);
     return SizedBox(
       width: double.infinity,
@@ -89,19 +97,19 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text('PRICE INTELLIGENCE · ΕΛΛΑΔΑ', textAlign: TextAlign.center, style: PkText.eyebrow(size: PkFont.xs, color: pk.dealText)),
+                Text(t.heroEyebrow, textAlign: TextAlign.center, style: PkText.eyebrow(size: PkFont.xs, color: pk.dealText)),
                 const SizedBox(height: 16),
-                Text('Μην ρωτάς πόσο κάνει.',
+                Text(t.heroTitle1,
                     textAlign: TextAlign.center,
                     style: PkText.display(size: phone ? 34 : 56, weight: FontWeight.w800, color: pk.textPrimary, tracking: -0.03, height: 1.04)),
-                Text('Ρώτα πού είναι φθηνότερο.',
+                Text(t.heroTitle2,
                     textAlign: TextAlign.center,
                     style: PkText.display(size: phone ? 34 : 56, weight: FontWeight.w800, color: pk.primary, tracking: -0.03, height: 1.04)),
                 const SizedBox(height: 18),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
                   child: Text(
-                    'Σύγκρινε κάθε ελληνικό σούπερ μάρκετ με βάση την πραγματική τιμή ανά κιλό, φτιάξε καλάθι και άσε το πόσο κάνει να διαλέξει τα φθηνότερα μαγαζιά.',
+                    t.heroBody,
                     textAlign: TextAlign.center,
                     style: PkText.body(size: phone ? 15 : 18, color: pk.textSecondary, height: 1.5),
                   ),
@@ -126,16 +134,17 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         if (snap.hasError || !snap.hasData) return const SizedBox.shrink();
         final s = snap.data!;
+        final t = context.t;
         Widget dot() => Container(width: 5, height: 5, margin: const EdgeInsets.symmetric(horizontal: 14), decoration: BoxDecoration(color: pk.borderStrong, shape: BoxShape.circle));
         return Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            StatCounter(value: s.totalProducts, label: 'προϊόντα'),
+            StatCounter(value: s.totalProducts, label: t.statProducts),
             dot(),
-            StatCounter(value: s.retailerCount, label: 'καταστήματα'),
+            StatCounter(value: s.retailerCount, label: t.statStores),
             dot(),
-            StatCounter(value: s.productsOnDiscount, label: 'σε προσφορά', tone: PkStatTone.deal),
+            StatCounter(value: s.productsOnDiscount, label: t.statOnDeal, tone: PkStatTone.deal),
           ],
         );
       },
@@ -189,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final items = snap.data!.items.toList()
           ..sort((a, b) => (b.bestDiscount ?? 0).compareTo(a.bestDiscount ?? 0));
         if (items.isEmpty) {
-          return const PkEmptyView(icon: Icons.local_offer_outlined, message: 'Δεν υπάρχουν νέες πτώσεις σήμερα. Παρακολουθούμε 2.702 προσφορές.');
+          return PkEmptyView(icon: Icons.local_offer_outlined, message: context.t.noDropsToday);
         }
         return PkResponsiveGrid(
           columnsFor: PkResponsiveGrid.products,

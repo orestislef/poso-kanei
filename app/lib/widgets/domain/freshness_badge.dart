@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
 
-/// Inline "as of {date}" stamp with a clock glyph. Goes amber/bold once the
-/// data is older than [staleDays].
+/// Inline "{date}" stamp with a clock glyph. Goes amber/bold once the data is
+/// older than [staleDays].
 class FreshnessBadge extends StatelessWidget {
   final DateTime? date;
   final int staleDays;
@@ -15,26 +16,22 @@ class FreshnessBadge extends StatelessWidget {
     this.staleDays = 7,
   });
 
-  static const List<String> _months = [
-    'Ιαν', 'Φεβ', 'Μαρ', 'Απρ', 'Μαΐ', 'Ιουν',
-    'Ιουλ', 'Αυγ', 'Σεπ', 'Οκτ', 'Νοε', 'Δεκ',
-  ];
-
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     final date = this.date;
 
     String label;
     bool stale = false;
 
     if (date == null) {
-      label = 'άγνωστη ημ/νία';
+      label = t.dateUnknown;
     } else {
       final now = DateTime.now();
       final ageDays = now.difference(date).inDays;
       stale = ageDays > staleDays;
-      label = '${date.day} ${_months[date.month - 1]}';
+      label = '${date.day} ${t.months[date.month - 1]}';
     }
 
     final color = stale ? pk.warningText : pk.textMuted;

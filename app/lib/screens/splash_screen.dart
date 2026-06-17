@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../i18n/strings.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
@@ -18,8 +19,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late final AnimationController _pop;
   late final AnimationController _bar;
-  int _n = 0;
-  Timer? _countTimer;
   Timer? _doneTimer;
 
   static const _bg = Color(0xFF14130F);
@@ -32,15 +31,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final reduce = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations;
     _pop = AnimationController(vsync: this, duration: const Duration(milliseconds: 700))..forward();
     _bar = AnimationController(vsync: this, duration: const Duration(milliseconds: 1900))..forward();
-    _countTimer = Timer(const Duration(milliseconds: 250), () {
-      if (mounted) setState(() => _n = 22);
-    });
     _doneTimer = Timer(Duration(milliseconds: reduce ? 300 : 2200), widget.onDone);
   }
 
   @override
   void dispose() {
-    _countTimer?.cancel();
     _doneTimer?.cancel();
     _pop.dispose();
     _bar.dispose();
@@ -84,10 +79,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 child: FadeTransition(opacity: _pop, child: const BrandMark(size: 88)),
               ),
               const SizedBox(height: 18),
-              Text('πόσο κάνει', style: PkText.display(size: 46, weight: FontWeight.w800, color: _ink, tracking: -0.03)),
+              Text(context.t.brand, style: PkText.display(size: 46, weight: FontWeight.w800, color: _ink, tracking: -0.03)),
               const SizedBox(height: 8),
               Text(
-                'Μην ρωτάς πόσο κάνει. Ρώτα πού είναι φθηνότερο.',
+                context.t.tagline,
                 textAlign: TextAlign.center,
                 style: PkText.body(size: 16, color: _ink.withValues(alpha: 0.7)),
               ),
@@ -117,16 +112,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 ),
               ),
               const SizedBox(height: 14),
-              DefaultTextStyle(
+              Text(
+                context.t.checkingStores,
                 style: PkText.mono(size: 12, color: _ink.withValues(alpha: 0.5)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('έλεγχος '),
-                    Text('$_n', style: PkText.mono(size: 12, weight: FontWeight.w600, color: _accent)),
-                    const Text(' καταστημάτων…'),
-                  ],
-                ),
               ),
             ],
           ),

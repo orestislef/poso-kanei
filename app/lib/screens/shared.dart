@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api/images.dart';
 import '../api/models.dart';
+import '../i18n/strings.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
@@ -76,7 +77,7 @@ class PkFooter extends StatelessWidget {
               children: [
                 const Logo(size: 18),
                 Text(
-                  '© 2026 πόσο κάνει · δεδομένα από api.posokanei.gov.gr',
+                  context.t.footer,
                   style: PkText.mono(size: PkFont.xs, color: pk.textMuted),
                 ),
               ],

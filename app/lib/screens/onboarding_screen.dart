@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../i18n/strings.dart';
 import '../theme/app_theme.dart';
 import '../theme/tokens.dart';
 import '../widgets/brand.dart';
@@ -15,18 +16,6 @@ class _Step {
   const _Step(this.icon, this.tag, this.title, this.body, this.demo);
 }
 
-const _steps = <_Step>[
-  _Step(Icons.scale, 'ΣΥΓΚΡΙΣΗ', 'Η πραγματική τιμή, ανά κιλό',
-      'Κατατάσσουμε κάθε σούπερ μάρκετ με βάση το πραγματικό €/kg και €/L — έτσι η μεγάλη συσκευασία που φαίνεται ακριβότερη βγαίνει συχνά φθηνότερη. Οι τιμές της ετικέτας ξεγελούν· οι τιμές ανά μονάδα όχι.',
-      'unit'),
-  _Step(Icons.call_split, 'ΒΕΛΤΙΣΤΟΠΟΙΗΣΗ', 'Ένα καλάθι, τα φθηνότερα μαγαζιά',
-      'Φτιάξε την εβδομαδιαία λίστα σου και το πόσο κάνει τη μοιράζει: όλα σε μία αλυσίδα, ή ένα έξυπνο πλάνο 2 στάσεων που σε γλιτώνει τα περισσότερα.',
-      'basket'),
-  _Step(Icons.trending_down, 'ΠΑΡΑΚΟΛΟΥΘΗΣΗ', 'Αληθινές προσφορές, όχι ψεύτικες',
-      'Το ιστορικό τιμών δείχνει το χαμηλότερο 30 ημερών — έτσι μια «έκπτωση» που δεν ήταν ποτέ πραγματικά φθηνότερη ξεσκεπάζεται με μια ματιά.',
-      'history'),
-];
-
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onDone;
   const OnboardingScreen({super.key, required this.onDone});
@@ -40,8 +29,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
-    final s = _steps[_i];
-    final last = _i == _steps.length - 1;
+    final t = context.t;
+    final steps = <_Step>[
+      _Step(Icons.scale, t.ob1Tag, t.ob1Title, t.ob1Body, 'unit'),
+      _Step(Icons.call_split, t.ob2Tag, t.ob2Title, t.ob2Body, 'basket'),
+      _Step(Icons.trending_down, t.ob3Tag, t.ob3Title, t.ob3Body, 'history'),
+    ];
+    final s = steps[_i];
+    final last = _i == steps.length - 1;
     final wide = MediaQuery.of(context).size.width >= 900;
 
     final art = _Art(step: s);
@@ -60,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         const SizedBox(height: 28),
         Row(
           children: [
-            for (var k = 0; k < _steps.length; k++)
+            for (var k = 0; k < steps.length; k++)
               GestureDetector(
                 onTap: () => setState(() => _i = k),
                 child: AnimatedContainer(
@@ -81,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           children: [
             if (_i > 0) ...[
               PkButton(
-                label: 'Πίσω',
+                label: t.back,
                 variant: PkButtonVariant.ghost,
                 onPressed: () => setState(() => _i--),
                 iconLeft: Icon(Icons.chevron_left, size: 18, color: pk.textPrimary),
@@ -89,7 +84,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               const SizedBox(width: 10),
             ],
             PkButton(
-              label: last ? 'Ξεκίνα να γλιτώνεις' : 'Επόμενο',
+              label: last ? t.obStart : t.obNext,
               onPressed: () => last ? widget.onDone() : setState(() => _i++),
               iconRight: last ? null : const Icon(Icons.arrow_forward, size: 18, color: Colors.white),
             ),
@@ -111,7 +106,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const Logo(size: 22),
                   TextButton(
                     onPressed: widget.onDone,
-                    child: Text('Παράλειψη', style: PkText.label(size: 14, weight: FontWeight.w600, color: pk.textMuted)),
+                    child: Text(t.obSkip, style: PkText.label(size: 14, weight: FontWeight.w600, color: pk.textMuted)),
                   ),
                 ],
               ),
@@ -216,6 +211,7 @@ class _Demo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pk = context.pk;
+    final t = context.t;
     Widget card(Widget child) => Container(
           constraints: const BoxConstraints(minWidth: 280, maxWidth: 320),
           padding: const EdgeInsets.all(16),
@@ -239,7 +235,7 @@ class _Demo extends StatelessWidget {
           Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.auto_awesome, size: 13, color: pk.saveText),
             const SizedBox(width: 6),
-            Text('το 1kg είναι φθηνότερο ανά γραμμάριο', style: PkText.mono(size: 12, color: pk.saveText)),
+            Flexible(child: Text(t.demoUnitNote, style: PkText.mono(size: 12, color: pk.saveText))),
           ]),
         ],
       ));
@@ -247,9 +243,9 @@ class _Demo extends StatelessWidget {
     if (kind == 'basket') {
       return card(Column(
         children: [
-          _splitRow(context, 'lidl', '4 προϊόντα'),
+          _splitRow(context, 'lidl', t.demoItems(4)),
           const SizedBox(height: 8),
-          _splitRow(context, 'sklavenitis', '3 προϊόντα'),
+          _splitRow(context, 'sklavenitis', t.demoItems(3)),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(12),
@@ -257,8 +253,8 @@ class _Demo extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Πλάνο 2 στάσεων', style: PkText.body(size: 14, color: pk.saveText)),
-                Text('γλιτώνεις €8.40', style: PkText.price(size: 18, color: pk.saveText)),
+                Text(t.demoPlan2, style: PkText.body(size: 14, color: pk.saveText)),
+                Text(t.demoSave('€8.40'), style: PkText.price(size: 18, color: pk.saveText)),
               ],
             ),
           ),
@@ -272,7 +268,7 @@ class _Demo extends StatelessWidget {
         Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.trending_down, size: 13, color: pk.saveText),
           const SizedBox(width: 6),
-          Text('χαμηλότερο σε 30 ημέρες · €2.39', style: PkText.mono(size: 12, color: pk.saveText)),
+          Flexible(child: Text(t.demoHistNote, style: PkText.mono(size: 12, color: pk.saveText))),
         ]),
       ],
     ));

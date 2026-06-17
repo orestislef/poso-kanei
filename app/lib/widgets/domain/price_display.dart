@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../i18n/strings.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/tokens.dart';
 
@@ -66,7 +67,7 @@ class PriceDisplay extends StatelessWidget {
       children: [
         if (showFrom) ...[
           Text(
-            'ΑΠΟ',
+            context.t.from,
             style: PkText.mono(
               size: 11,
               weight: FontWeight.w500,
