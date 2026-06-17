@@ -1,46 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="el">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="description" content="πόσο κάνει — σύγκριση τιμών σούπερ μάρκετ για όλη την Ελλάδα. Compare Greek supermarket prices by true €/kg, build a basket, track price history.">
+  <meta name="theme-color" content="#1f6b4a">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Open Graph -->
+  <meta property="og:title" content="πόσο κάνει">
+  <meta property="og:description" content="Μην ρωτάς πόσο κάνει. Ρώτα πού είναι φθηνότερο.">
+  <meta property="og:type" content="website">
+
+  <!-- iOS -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="poso_kanei">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="πόσο κάνει">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <!-- Favicon: crisp SVG with PNG fallback -->
+  <link rel="icon" type="image/svg+xml" href="mark.svg">
+  <link rel="icon" type="image/png" href="favicon.png">
 
-  <title>poso_kanei</title>
+  <title>πόσο κάνει — σύγκριση τιμών σούπερ μάρκετ</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background-color: #f7f5ef; }
+    #pk-boot {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      background: #14130f; transition: opacity .4s ease; z-index: 9999;
+    }
+    #pk-boot img { width: 84px; height: 84px; animation: pk-pop .7s cubic-bezier(.34,1.56,.64,1); }
+    #pk-boot .pk-word { color: #f5f1e6; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-weight: 800; font-size: 30px; letter-spacing: -.02em; }
+    #pk-boot .pk-bar { width: 180px; height: 4px; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
+    #pk-boot .pk-fill { width: 40%; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#3fa978,#6bcb9f); animation: pk-load 1.4s ease-in-out infinite; }
+    @keyframes pk-pop { from { opacity: 0; transform: scale(.6) rotate(-12deg); } to { opacity: 1; transform: none; } }
+    @keyframes pk-load { 0% { margin-left: -40%; } 100% { margin-left: 100%; } }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <div id="pk-boot">
+    <img src="mark.svg" alt="">
+    <div class="pk-word">πόσο κάνει</div>
+    <div class="pk-bar"><div class="pk-fill"></div></div>
+  </div>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('pk-boot');
+      if (!el) return;
+      el.style.opacity = '0';
+      setTimeout(function () { el.remove(); }, 420);
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

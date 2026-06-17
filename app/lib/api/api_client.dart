@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'api_config.dart';
 import 'models.dart';
 
 /// Thrown when the API returns a non-2xx response or the request fails.
@@ -24,8 +25,9 @@ class ApiClient {
   final http.Client _client;
   final String base;
 
-  ApiClient({http.Client? client, this.base = 'https://api.posokanei.gov.gr'})
-      : _client = client ?? http.Client();
+  ApiClient({http.Client? client, String? base})
+      : base = base ?? ApiConfig.base,
+        _client = client ?? http.Client();
 
   static const Duration _timeout = Duration(seconds: 20);
 

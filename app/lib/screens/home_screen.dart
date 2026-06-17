@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../api/images.dart';
 import '../api/models.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
@@ -183,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: CategoryCard(
                   name: cats[i].name,
                   count: cats[i].totalProductCount,
-                  imageUrl: cats[i].imageUrl,
+                  imageUrl: PkImages.display(cats[i].imageUrl),
                   onTap: () => nav.openCategory(categoryId: cats[i].categoryId, categoryName: cats[i].name),
                 ),
               ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../api/images.dart';
 import '../api/models.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
@@ -72,7 +73,7 @@ class PkFooter extends StatelessWidget {
               children: [
                 const Logo(size: 18),
                 Text(
-                  'Ζωντανές τιμές από api.posokanei.gov.gr · Ελληνικά / English',
+                  'Δοκιμαστική έκδοση · demo · δεδομένα από api.posokanei.gov.gr · Ελληνικά / English',
                   style: PkText.mono(size: PkFont.xs, color: pk.textMuted),
                 ),
               ],
@@ -262,7 +263,7 @@ Widget pkProductCard(BuildContext context, Product p, {String heroPrefix = 'grid
     name: p.name,
     brand: p.brand,
     packSize: pkPackLabel(p),
-    imageUrl: p.hasImage ? p.imageUrl : null,
+    imageUrl: p.hasImage ? PkImages.display(p.imageUrl) : null,
     price: p.minPrice ?? 0,
     unitPrice: p.minUnitPrice ?? (p.minPrice ?? 0),
     unit: p.unit ?? 'kg',

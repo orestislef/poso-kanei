@@ -1,11 +1,11 @@
 {
-    "name": "poso_kanei",
-    "short_name": "poso_kanei",
+    "name": "πόσο κάνει — σύγκριση τιμών",
+    "short_name": "πόσο κάνει",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#14130f",
+    "theme_color": "#1f6b4a",
+    "description": "Σύγκριση τιμών σούπερ μάρκετ με πραγματική τιμή ανά κιλό, έξυπνο καλάθι και ιστορικό τιμών.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
