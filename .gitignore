@@ -1,0 +1,56 @@
+# ── Design source bundle (third-party export, not part of the app) ──
+thinking/design-handoff/
+*.zip
+
+# ── Flutter / Dart ──
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/build/
+app/.fvm/
+**/generated_plugin_registrant.dart
+.flutter-versions
+
+# Symbolication / obfuscation
+app/app.*.symbols
+app/app.*.map.json
+
+# ── IDE ──
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+
+# ── Android ──
+app/android/.gradle/
+app/android/captures/
+app/android/local.properties
+app/android/key.properties
+app/android/app/upload-keystore.jks
+app/android/**/GeneratedPluginRegistrant.java
+app/android/.kotlin/
+
+# ── iOS ──
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/Flutter/Generated.xcconfig
+app/ios/Flutter/flutter_export_environment.sh
+app/ios/Runner/GeneratedPluginRegistrant.*
+
+# ── Windows / desktop ephemeral ──
+app/windows/flutter/ephemeral/
+app/linux/flutter/ephemeral/
+app/macos/Flutter/ephemeral/
+
+# ── Web ──
+app/web/flutter_service_worker.js
+
+# ── Misc ──
+*.log
+.env
